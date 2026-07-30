@@ -51,6 +51,10 @@ def load_vl_model():
     model = _auto_model(config.MODEL_ID).from_pretrained(config.MODEL_ID, **load_kwargs)
     model.eval()
     processor = AutoProcessor.from_pretrained(config.MODEL_ID)
+    # ensure left-padding for correct batched decoder generation
+    processor.tokenizer.padding_side = "left"
+    if processor.tokenizer.pad_token is None:
+        processor.tokenizer.pad_token = processor.tokenizer.eos_token
     return model, processor
 
 
@@ -137,12 +141,12 @@ def _messages_for(item: dict, mode: str) -> tuple[list, list]:
 
 
 def _parse_prediction(text: str) -> str:
-    """Map raw generated text to a canonical label (or '' if none matched)."""
+    """Return the last standalone answer label found (robust to junk prefixes)."""
+    import re
     low = text.strip().lower()
-    for label in config.ANSWER_LABELS:
-        if low.startswith(label) or f" {label}" in f" {low}":
-            return label
-    return ""
+    labels = "|".join(re.escape(l) for l in config.ANSWER_LABELS)
+    hits = re.findall(rf"\b({labels})\b", low)
+    return hits[-1] if hits else ""
 
 
 # --------------------------------------------------------------------------- #

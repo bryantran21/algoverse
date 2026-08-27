@@ -139,6 +139,15 @@ reconstructed from float32-stored hidden states and disagreed with the model's
 own logits by up to ~1.5 units; the hook-based version matches to five decimals.
 Use `results/logit_lens_v2/`.
 
+*Provenance of the logit-lens figure.* Unlike the behavioral and bias results
+(N=2000, failure/control 253/1450), the logit-lens figure is computed on the
+**N=500 pilot run**. Its text and image curves are that run's 62-item failure
+set; the image *control* curve is a random 62-item subsample of the same run's
+369-item control set, **size-matched to the failure set** so all three curves
+share n=62 and their bootstrap CI bands are directly comparable. It is not a
+subsample of the 1450-item headline control, and the figure is not built on the
+N=2000 sets.
+
 **Patching.** Patch a single layer at a *restricted token span*, never all
 positions. An unrestricted version recovers 1.000 at every layer including layer
 0 — degenerate by construction, since replacing layer 0's full output means every

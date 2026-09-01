@@ -16,7 +16,7 @@ These call for opposite interventions (better encoders vs. better cross-modal
 readout), and no amount of black-box evaluation separates them.
 
 **Headline: in Qwen2.5-VL it is readout failure, and specifically a directional
-bias.** The rendered text is legible — the model transcribes it at median 0.96
+bias.** The rendered text is legible — the model transcribes it at median 0.98
 character accuracy on the very items it answers wrong — yet rendering pushes the
 decision toward answering "no." Activation patching localizes the corruption
 handoff to layers 18–20. Adding a single constant to the Yes logit at inference
@@ -54,11 +54,15 @@ blocks. Readout is hook-based and validated to exact agreement with the model's
 own final logits (see `notebooks/07`).
 
 **3. It is not a perception problem (for Qwen).** Asked to transcribe the same
-5pt images it answers incorrectly, the model achieves median 0.964 character
-accuracy, 79% of items above 0.90, only 6% below 0.50. Inspection of the low
-scorers shows most are span mismatch against the gold string rather than genuine
-misreads, so true legibility is higher than the 0.885 mean suggests. The text is
-legible. The model reads it and then does not use it.
+5pt images it answers incorrectly, the model achieves median 0.981 / mean 0.978
+character accuracy, with **every** item above 0.90 (min 0.941) and none below
+0.50. Character similarity is normalized Ratcliff/Obershelp (`difflib`
+`SequenceMatcher`, `autojunk=False`) against the source passage+question; see
+`src/scoring.py`. (An earlier pass used `difflib`'s default `autojunk=True`, which
+scores correct transcriptions of >200-char passages near zero and understated the
+mean to 0.885 — the raw values are kept as `scores_autojunk` in
+`results/logit_lens/transcription_scores.npz`.) The text is legible. The model
+reads it and then does not use it.
 
 **4. Rendering induces a directional bias.** 89% of all image-mode errors are
 false "no"; the failure set is 239 yes / 14 no against a control set that is
